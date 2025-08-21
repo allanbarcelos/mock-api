@@ -1,0 +1,60 @@
+### Teste: API Root
+GET http://127.0.0.1:8000/
+Accept: application/json
+
+###
+
+### Criar uma nova API Key
+GET http://127.0.0.1:8000/api
+Accept: application/json
+
+###
+
+### Substitua abaixo com a chave retornada pelo endpoint /api
+@api_key = 26dbcd354907b17ad13619595d07b73a
+
+### Listar produtos (primeira vez, gera 1000 produtos)
+GET http://127.0.0.1:8000/products?page=1&limit=10
+Accept: application/json
+API-Key: {{api_key}}
+
+###
+
+### Criar um novo produto
+POST http://127.0.0.1:8000/products
+Content-Type: application/json
+API-Key: {{api_key}}
+
+{
+  "name": "Produto Teste",
+  "description": "Descrição do produto teste",
+  "brand": "Marca XYZ",
+  "quantity": 100,
+  "price": 49.99,
+  "category": "Categoria Teste",
+  "photo": "https://picsum.photos/500/500"
+}
+
+###
+
+### Atualizar um produto (substitua 1 pelo id real)
+PUT http://127.0.0.1:8000/products/1
+Content-Type: application/json
+API-Key: {{api_key}}
+
+{
+  "price": 59.99,
+  "quantity": 150
+}
+
+###
+
+### Deletar um produto (substitua 1 pelo id real)
+DELETE http://127.0.0.1:8000/products/1
+API-Key: {{api_key}}
+
+###
+
+### Deletar API Key
+DELETE http://127.0.0.1:8000/api
+API-Key: {{api_key}}
