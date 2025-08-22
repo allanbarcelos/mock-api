@@ -35,29 +35,23 @@ jobs:
         run: |
           rsync -avz --exclude '.git/' ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/app
         env:
-            SSH_AUTH_SOCK: /tmp/ssh-agent.sock
-            
-      - name: Deploy on EC2
+          SSH_AUTH_SOCK: /tmp/ssh-agent.sock
+
+      - name: Setup Python Environment on EC2
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-
-            export DATABASE_URL=${{ secrets.DATABASE_URL }}
-            export SECRET_KEY=${{ secrets.SECRET_KEY }}
-            export ALGORITHM=${{ secrets.ALGORITHM }}
-            export ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
-
-            cd /home/${{ secrets.EC2_USER }}/app
-            # Virtualenv
-            
             sudo apt-get update -y
             sudo apt-get install -y python3.13-venv python3-pip
-            
+            cd /home/${{ secrets.EC2_USER }}/app
             python3 -m venv venv
             source venv/bin/activate
             pip install --upgrade pip
             pip install -r requirements.txt
+          EOF
 
-            # Systemd service for Uvicorn
+      - name: Configure Systemd Service
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             sudo tee /etc/systemd/system/fastapi.service > /dev/null << EOL
             [Unit]
             Description=FastAPI application
@@ -76,12 +70,15 @@ jobs:
             sudo systemctl daemon-reload
             sudo systemctl enable fastapi.service
             sudo systemctl restart fastapi.service
+          EOF
 
-            # Nginx config for HTTP & HTTPS
-            sudo tee /etc/nginx/sites-available/default > /dev/null << 'EOL'
+      - name: Configure Nginx
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            sudo tee /etc/nginx/sites-available/default > /dev/null << EOL
             server {
                 listen 80;
-                server_name {{secrets.DOMAIN_NAME}};
+                server_name ${{ secrets.DOMAIN_NAME }};
 
                 location / {
                     proxy_pass http://127.0.0.1:8000;
@@ -96,10 +93,12 @@ jobs:
             sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
             sudo nginx -t
             sudo systemctl restart nginx
+          EOF
 
-            # Install certbot for HTTPS
+      - name: Setup HTTPS with Certbot
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             sudo apt-get update
             sudo apt-get install -y certbot python3-certbot-nginx
-            sudo certbot --nginx -d {{secrets.DOMAIN_NAME}} --non-interactive --agree-tos -m {{secrets.ADMIN_EMAIL}}
-
+            sudo certbot --nginx -d ${{ secrets.DOMAIN_NAME }} --non-interactive --agree-tos -m ${{ secrets.ADMIN_EMAIL }}
           EOF
