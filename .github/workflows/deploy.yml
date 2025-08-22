@@ -15,14 +15,14 @@ jobs:
 
       - name: Check if SSH key exists
         run: |
-          if [ -z "${{ secrets.EC2_KEY }}" ]; then
+          if [ -z "${{ secrets.EC2_SSH_KEY }}" ]; then
             echo "SSH Key is missing!" && exit 1
           fi
 
       - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
-          key: ${{ secrets.EC2_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           known_hosts: unnecessary
 
       - name: Adding Known Hosts
