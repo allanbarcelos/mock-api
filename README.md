@@ -2,7 +2,9 @@
 
 A modular REST API built with **FastAPI**, **SQLAlchemy**, and **MySQL**, supporting multi-user roles, JWT authentication (with PyJWT), and API key management. This API provides endpoints for users, products, authentication, and API key CRUD operations, with auto-generated mock data using **Faker**.
 
----
+- API: [https://mock-api.barcelos.dev](https://mock-api.barcelos.dev)
+
+- SWAGGER: [https://mock-api.barcelos.dev/docs](https://mock-api.barcelos.dev/docs)
 
 ## Table of Contents
 
