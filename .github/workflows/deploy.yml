@@ -74,7 +74,7 @@ jobs:
             sudo systemctl restart fastapi.service
 
             # Nginx config for HTTP & HTTPS
-            sudo tee /etc/nginx/sites-available/fastapi > /dev/null << 'EOL'
+            sudo tee /etc/nginx/sites-available/default > /dev/null << 'EOL'
             server {
                 listen 80;
                 server_name {{secrets.DOMAIN_NAME}};
@@ -89,13 +89,13 @@ jobs:
             }
             EOL
 
-            sudo ln -sf /etc/nginx/sites-available/fastapi /etc/nginx/sites-enabled/
+            sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
             sudo nginx -t
             sudo systemctl restart nginx
 
             # Install certbot for HTTPS
             sudo apt-get update
             sudo apt-get install -y certbot python3-certbot-nginx
-            sudo certbot --nginx -d YOUR_DOMAIN --non-interactive --agree-tos -m {{secrets.ADMIN_EMAIL}}
+            sudo certbot --nginx -d {{secrets.DOMAIN_NAME}} --non-interactive --agree-tos -m {{secrets.ADMIN_EMAIL}}
 
           EOF
