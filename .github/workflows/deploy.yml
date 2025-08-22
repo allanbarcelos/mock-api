@@ -48,6 +48,7 @@ jobs:
 
             cd /home/${{ secrets.EC2_USER }}/app
             # Virtualenv
+            sudo apt install python3.13-venv
             python3 -m venv venv
             source venv/bin/activate
             pip install --upgrade pip
