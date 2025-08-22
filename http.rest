@@ -1,43 +1,65 @@
-### Teste: API Root
+### Test: API Root
 GET http://127.0.0.1:8000/
 Accept: application/json
 
 ###
 
-### Criar uma nova API Key
+### Create a new API Key
+# @name api
 GET http://127.0.0.1:8000/api
 Accept: application/json
 
 ###
 
-### Substitua abaixo com a chave retornada pelo endpoint /api
-@api_key = 26dbcd354907b17ad13619595d07b73a
-
-### Listar produtos (primeira vez, gera 1000 produtos)
-GET http://127.0.0.1:8000/products?page=1&limit=10
-Accept: application/json
-API-Key: {{api_key}}
+### Returned from the /api endpoint
+@api_key = {{api.response.body.api_key}}
+@admin_email = {{api.response.body.admin_user.email}}
+@admin_password = {{api.response.body.admin_user.password}}
 
 ###
 
-### Criar um novo produto
+### User Login
+# @name auth
+POST http://127.0.0.1:8000/auth/login
+API-Key: {{api_key}}
+Content-Type: application/json
+
+{
+  "email": "{{admin_email}}",
+  "password": "{{admin_password}}"
+}
+
+### JWT Token
+@access_token = {{auth.response.body.access_token}}
+
+###
+
+### List products (first time generates 1000 products)
+GET http://127.0.0.1:8000/products?page=2&limit=10
+Accept: application/json
+API-Key: {{api_key}}
+Authorization: Bearer {{access_token}}
+
+###
+
+### Create a new product
 POST http://127.0.0.1:8000/products
 Content-Type: application/json
 API-Key: {{api_key}}
 
 {
-  "name": "Produto Teste",
-  "description": "Descrição do produto teste",
-  "brand": "Marca XYZ",
+  "name": "Test Product",
+  "description": "Description of test product",
+  "brand": "Brand XYZ",
   "quantity": 100,
   "price": 49.99,
-  "category": "Categoria Teste",
+  "category": "Test Category",
   "photo": "https://picsum.photos/500/500"
 }
 
 ###
 
-### Atualizar um produto (substitua 1 pelo id real)
+### Update a product (replace 1 with actual id)
 PUT http://127.0.0.1:8000/products/1
 Content-Type: application/json
 API-Key: {{api_key}}
@@ -49,12 +71,68 @@ API-Key: {{api_key}}
 
 ###
 
-### Deletar um produto (substitua 1 pelo id real)
+### Delete a product (replace 1 with actual id)
 DELETE http://127.0.0.1:8000/products/1
 API-Key: {{api_key}}
 
 ###
 
-### Deletar API Key
+### Delete API Key
 DELETE http://127.0.0.1:8000/api
 API-Key: {{api_key}}
+
+###
+
+### List users (with pagination)
+GET http://127.0.0.1:8000/users?page=1&limit=10
+Accept: application/json
+token: {{access_token}}
+
+###
+
+### Create a new user
+POST http://127.0.0.1:8000/users
+Content-Type: application/json
+token: {{access_token}}
+
+{
+  "name": "John Smith",
+  "email": "john@example.com",
+  "address": "123 A Street",
+  "password": "password123",
+  "role": "customer"
+}
+
+###
+
+### Update a user (replace 1 with actual id)
+PUT http://127.0.0.1:8000/users/1
+Content-Type: application/json
+token: {{access_token}}
+
+{
+  "address": "456 B Street",
+  "password": "newpassword123"
+}
+
+###
+
+### Delete a user (replace 1 with actual id)
+DELETE http://127.0.0.1:8000/users/1
+token: {{access_token}}
+
+###
+
+### Register a new user via auth
+POST http://127.0.0.1:8000/auth/register
+Content-Type: application/json
+API-Key: {{api_key}}
+
+{
+  "name": "Mary Oliveira",
+  "email": "mary@example.com",
+  "address": "987 Central Ave",
+  "password": "password123"
+}
+
+###
