@@ -51,22 +51,22 @@ jobs:
 
       - name: Configure Systemd Service
         run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "sudo tee /etc/systemd/system/fastapi.service > /dev/null" << 'EOL'
+          [Unit]
+          Description=FastAPI application
+          After=network.target
+
+          [Service]
+          User=${{ secrets.EC2_USER }}
+          WorkingDirectory=/home/${{ secrets.EC2_USER }}/app
+          ExecStart=/home/${{ secrets.EC2_USER }}/app/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+          EOL
+
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            sudo tee /etc/systemd/system/fastapi.service > /dev/null << EOL
-            [Unit]
-            Description=FastAPI application
-            After=network.target
-
-            [Service]
-            User=${{ secrets.EC2_USER }}
-            WorkingDirectory=/home/${{ secrets.EC2_USER }}/app
-            ExecStart=/home/${{ secrets.EC2_USER }}/app/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
-            Restart=always
-
-            [Install]
-            WantedBy=multi-user.target
-            EOL
-
             sudo systemctl daemon-reload
             sudo systemctl enable fastapi.service
             sudo systemctl restart fastapi.service
@@ -74,22 +74,22 @@ jobs:
 
       - name: Configure Nginx
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            sudo tee /etc/nginx/sites-available/default > /dev/null << 'EOL'
-            server {
-                listen 80;
-                server_name ${{ secrets.DOMAIN_NAME }};
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "sudo tee /etc/nginx/sites-available/default > /dev/null" << 'EOL'
+          server {
+              listen 80;
+              server_name ${{ secrets.DOMAIN_NAME }};
 
-                location / {
-                    proxy_pass http://127.0.0.1:8000;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-            }
-            EOL
-            
+              location / {
+                  proxy_pass http://127.0.0.1:8000;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+          }
+          EOL
+
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
             sudo nginx -t
             sudo systemctl restart nginx
