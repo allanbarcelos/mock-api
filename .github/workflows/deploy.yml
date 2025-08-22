@@ -75,7 +75,7 @@ jobs:
       - name: Configure Nginx
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            sudo tee /etc/nginx/sites-available/default > /dev/null << EOL
+            sudo tee /etc/nginx/sites-available/default > /dev/null << 'NGINX_CONF'
             server {
                 listen 80;
                 server_name ${{ secrets.DOMAIN_NAME }};
@@ -88,7 +88,7 @@ jobs:
                     proxy_set_header X-Forwarded-Proto $scheme;
                 }
             }
-            EOL
+            NGINX_CONF
 
             sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
             sudo nginx -t
