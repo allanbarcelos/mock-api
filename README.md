@@ -88,7 +88,7 @@ pythonanywhere/
 
 ```bash
 git clone <repository-url>
-cd pythonanywhere
+cd mock-api
 ```
 
 2. Create a virtual environment:
